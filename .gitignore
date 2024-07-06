@@ -1,0 +1,9 @@
+# Dune build directory
+/_build/
+
+# Editor backup files
+*~
+
+# Compiled artifacts
+*.byte
+*.native

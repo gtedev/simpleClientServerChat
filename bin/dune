@@ -1,0 +1,5 @@
+(executable
+ (public_name helloWorld)
+ (name main)
+ (modules util client server main)
+ (libraries threads unix helloWorld))
