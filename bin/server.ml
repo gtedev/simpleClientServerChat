@@ -11,7 +11,7 @@ let initiate () =
   bind server_fd server_sockaddr;
   
   (* Listen for incoming connections *)
-  listen server_fd 5;
+  listen server_fd 1;
   print_endline "Server is listening...";
   
   (* Accept connections and handle them in an infinite loop *)
