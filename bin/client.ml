@@ -22,7 +22,7 @@ let initiate () =
      !status = 1
   in
 
-  while true do
+  while isConnected() do
       let t1 = Thread.create (Util.handle_receive_messages client_fd "server" onDisconnected) () in
       let t2 = Thread.create (Util.handle_send_messages (dup client_fd) "client" isConnected) () in
       Thread.join t1;

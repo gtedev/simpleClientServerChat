@@ -45,32 +45,12 @@ let initiate () =
         print_endline "Client disconnected...";
       in
 
-      (* let isConnected ()  =
-         print_int !status;
+      let isConnected () =
          !status = 1
-      in *)
-
-      let read_line_with_timeout timeout =
-        let stdin_fd = descr_of_in_channel In_channel.stdin in
-        let (ready_read, _, _) = select [stdin_fd] [] [] timeout in
-        if List.mem stdin_fd ready_read then
-          Some (input_line In_channel.stdin)
-        else
-          None
-      
       in
 
-      let handleSendMessages client_fd pseudo =
-        fun () ->
-             while !status = 1 do
-                  match read_line_with_timeout 1.0 with
-                  | Some message -> Util.send_message client_fd message pseudo;
-                  | None -> ()
-             done
-      in 
-
-      let t1 = Thread.create (Util.handle_receive_messages client_fd "server" onDisconnected) () in
-      let t2 = Thread.create (handleSendMessages (dup client_fd) "client") () in
+      let t1 = Thread.create (Util.handle_receive_messages client_fd "client" onDisconnected) () in
+      let t2 = Thread.create (Util.handle_send_messages (dup client_fd) "server" isConnected) () in
       Thread.join t1;
       Thread.join t2;
       ()

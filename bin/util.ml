@@ -30,9 +30,18 @@
            in
            receive_messages ()
  
+  let read_line_with_timeout timeout =
+  let stdin_fd = descr_of_in_channel In_channel.stdin in
+  let (ready_read, _, _) = select [stdin_fd] [] [] timeout in
+  if List.mem stdin_fd ready_read then
+    Some (input_line In_channel.stdin)
+  else
+    None
+
   let handle_send_messages client_fd pseudo isConnected =
       fun () ->
            while isConnected() do
-                let message = read_line () in   
-                send_message client_fd message pseudo
+            match read_line_with_timeout 1.0 with
+            | Some message -> send_message client_fd message pseudo;
+            | None -> ()
            done
