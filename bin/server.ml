@@ -1,6 +1,4 @@
 open Unix
-(* open Util *)
-
 
 let initiate () =
   let server_fd = socket PF_INET SOCK_STREAM 0 in
@@ -19,16 +17,6 @@ let initiate () =
       | ADDR_INET (addr, _) -> addr
       | _ -> failwith "Unexpected client address type"
     in
-
-    (* let mutex = Mutex.create () in
-    let status: int ref = ref 1 in
-
-    let updateStatus (statusVal: int)  =
-      Mutex.lock mutex;
-      status:= statusVal;
-      Mutex.unlock mutex;
-      ()
-    in *)
 
     print_endline ("Connection accepted from: " ^ string_of_inet_addr client_address);
 

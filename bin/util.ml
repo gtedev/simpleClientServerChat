@@ -18,7 +18,6 @@
       fun () ->
            (* Continuously receive messages from the client *)
            let rec receive_messages () =
-            (* let myStatus = !status; *)
             let message_buffer = Bytes.create 1024 in
             match recv client_fd message_buffer 0 1024 [] with
             | 0_ ->  (* Connection closed by the client *)
@@ -31,12 +30,12 @@
            receive_messages ()
  
   let read_line_with_timeout timeout =
-  let stdin_fd = descr_of_in_channel In_channel.stdin in
-  let (ready_read, _, _) = select [stdin_fd] [] [] timeout in
-  if List.mem stdin_fd ready_read then
-    Some (input_line In_channel.stdin)
-  else
-    None
+    let stdin_fd = descr_of_in_channel In_channel.stdin in
+    let (ready_read, _, _) = select [stdin_fd] [] [] timeout in
+    if List.mem stdin_fd ready_read then
+      Some (input_line In_channel.stdin)
+    else
+      None
 
   let handle_send_messages client_fd pseudo isConnected =
       fun () ->

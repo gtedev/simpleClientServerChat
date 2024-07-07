@@ -1,6 +1,4 @@
 open Unix
-(* open Util *)
-
 
 let initiate () =
   let client_fd = socket PF_INET SOCK_STREAM 0 in
