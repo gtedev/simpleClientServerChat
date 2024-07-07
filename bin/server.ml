@@ -1,40 +1,4 @@
 open Unix
-(* open Util *)
-
-(* let handle_client_messages client_fd =
-     fun () ->
-          (* Continuously receive messages from the client *)
-          let rec receive_messages () =
-          let message_buffer = Bytes.create 1024 in
-          match recv client_fd message_buffer 0 1024 [] with
-          | 0 ->  (* Connection closed by the client *)
-               print_endline "Client disconnected"
-          | bytes_read ->
-               let client_message = Bytes.sub_string message_buffer 0 bytes_read in
-               print_endline ("Received from client: " ^ client_message);
-
-               (* Send response back to client *)
-               let response = read_line () in
-               (* let response = "Message received" in *)
-               let response_bytes = Bytes.of_string response in
-               let _ = send client_fd response_bytes 0 (Bytes.length response_bytes) [] in
-
-               (* Continue to receive more messages *)
-               receive_messages ()
-          in
-          receive_messages ();
-
-          (* Close the client socket *)
-          close client_fd
-
-  let handle_server_send_messages client_fd =
-     fun () ->
-          while true do
-               let message = read_line () in   
-               Util.send_message client_fd message
-          done;
-  
-          () *)
 
 let initiate () =
   (* Create a socket for the server *)
@@ -59,8 +23,6 @@ let initiate () =
     in
     print_endline ("Connection accepted from: " ^ string_of_inet_addr client_address);
 
-    (* let mutex = Mutex.create() *)
-    
     (* Handle client communication *)
     let t1 = Thread.create (Util.handle_receive_messages client_fd "client") () in
     let t2 = Thread.create (Util.handle_send_messages client_fd "server") () in
