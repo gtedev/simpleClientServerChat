@@ -1,28 +1,8 @@
 open Unix
 
-let initiate () =
-  let server_fd = socket PF_INET SOCK_STREAM 0 in
-  let server_sockaddr = Util.get_server_socket_address() in
-
-  bind server_fd server_sockaddr;
-  
-  (* Listen for incoming connections *)
-  listen server_fd 1;
-  print_endline "Server is listening...";
-  
-  (* Accept connections and handle them in an infinite loop *)
-  while true do
-    let client_fd, client_sockaddr = accept server_fd in
-    let client_address = match client_sockaddr with
-      | ADDR_INET (addr, _) -> addr
-      | _ -> failwith "Unexpected client address type"
-    in
-
-    print_endline ("Connection accepted from: " ^ string_of_inet_addr client_address);
-
-    (* Handle client communication *)
-    let handleClient () = 
-
+(* Handle client communication *)
+let handleClient client_fd = 
+   fun () ->
       let mutex = Mutex.create () in
       let status: int ref = ref 1 in
 
@@ -42,10 +22,29 @@ let initiate () =
       Thread.join t1;
       Thread.join t2;
       ()
+
+let initiate () =
+  let server_fd = socket PF_INET SOCK_STREAM 0 in
+  let server_sockaddr = Util.get_server_socket_address() in
+
+  bind server_fd server_sockaddr;
+  
+  (* Listen for incoming connections *)
+  listen server_fd 1;
+  print_endline "Server is listening...";
+  
+  (* Accept connections and handle them in an infinite loop *)
+  while true do
+    let client_fd, client_sockaddr = accept server_fd in
+    let client_address = match client_sockaddr with
+      | ADDR_INET (addr, _) -> addr
+      | _ -> failwith "Unexpected client address type"
     in
+
+    print_endline ("Connection accepted from: " ^ string_of_inet_addr client_address);
     
-    let t3 = Thread.create (handleClient) () in
-    Thread.join t3;
+    Thread.create (handleClient client_fd) ()
+    |> Thread.join
     
   done;
   
