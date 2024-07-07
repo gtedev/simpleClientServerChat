@@ -24,18 +24,18 @@ let handleClient client_fd =
       ()
 
 let initiate () =
-  let server_fd = socket PF_INET SOCK_STREAM 0 in
-  let server_sockaddr = Util.get_server_socket_address() in
+  let server_socket = socket PF_INET SOCK_STREAM 0 in
+  let server_socket_address = Util.get_server_socket_address() in
 
-  bind server_fd server_sockaddr;
+  bind server_socket server_socket_address;
   
   (* Listen for incoming connections *)
-  listen server_fd 1;
+  listen server_socket 1;
   print_endline "Server is listening...";
   
   (* Accept connections and handle them in an infinite loop *)
   while true do
-    let client_fd, client_sockaddr = accept server_fd in
+    let client_socket, client_sockaddr = accept server_socket in
     let client_address = match client_sockaddr with
       | ADDR_INET (addr, _) -> addr
       | _ -> failwith "Unexpected client address type"
@@ -43,10 +43,10 @@ let initiate () =
 
     print_endline ("Connection accepted from: " ^ string_of_inet_addr client_address);
     
-    Thread.create (handleClient client_fd) ()
+    Thread.create (handleClient client_socket) ()
     |> Thread.join
     
   done;
   
   (* Close the server socket (though this line will never be reached) *)
-  close server_fd
+  close server_socket
