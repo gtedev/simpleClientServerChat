@@ -12,10 +12,8 @@ let initiate () =
   connect client_fd server_sockaddr;
     
   while true do
-      (* let message = read_line () in   
-      Util.send_message client_fd message *)
       let t1 = Thread.create (Util.handle_receive_messages client_fd "server") () in
-      let t2 = Thread.create (Util.handle_send_messages client_fd "client") () in
+      let t2 = Thread.create (Util.handle_send_messages (dup client_fd) "client") () in
       Thread.join t1;
       Thread.join t2;
   done;

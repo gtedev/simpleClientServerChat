@@ -25,7 +25,7 @@ let initiate () =
 
     (* Handle client communication *)
     let t1 = Thread.create (Util.handle_receive_messages client_fd "client") () in
-    let t2 = Thread.create (Util.handle_send_messages client_fd "server") () in
+    let t2 = Thread.create (Util.handle_send_messages (dup client_fd) "server") () in
     Thread.join t1;
     Thread.join t2;
   done;
