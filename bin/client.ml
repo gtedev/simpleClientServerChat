@@ -1,5 +1,4 @@
 open Unix
-(* open Util *)
 
 let initiate () =
   (* Create a socket for the client *)
