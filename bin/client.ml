@@ -11,15 +11,20 @@ let initiate () =
   let mutex = Mutex.create () in
   let status: int ref = ref 1 in
 
-  let updateStatus statusVal  =
-          Mutex.lock mutex;
-          status:= statusVal;
-          Mutex.unlock mutex;
+  let onDisconnected ()  =
+    Mutex.lock mutex;
+    status:= 0;
+    Mutex.unlock mutex;
+    print_endline "Lost connection with the Server...";
+  in
+  
+  let isConnected ()  =
+     !status = 1
   in
 
   while true do
-      let t1 = Thread.create (Util.handle_receive_messages client_fd "server" status updateStatus) () in
-      let t2 = Thread.create (Util.handle_send_messages (dup client_fd) "client" !status) () in
+      let t1 = Thread.create (Util.handle_receive_messages client_fd "server" onDisconnected) () in
+      let t2 = Thread.create (Util.handle_send_messages (dup client_fd) "client" isConnected) () in
       Thread.join t1;
       Thread.join t2;
   done;
