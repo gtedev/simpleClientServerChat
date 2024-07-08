@@ -1,9 +1,10 @@
 open Unix
 open Types
 
-let initiate () =
+let initiate (client_name : string option) =
   let client_socket = socket PF_INET SOCK_STREAM 0 in
   let server_socket_address = Util.get_server_socket_address () in
+  let client_name_as_string = Option.value client_name ~default:"Client" in
 
   connect client_socket server_socket_address;
 
@@ -22,14 +23,14 @@ let initiate () =
   while isConnected () do
     let t1 =
       Thread.create
-        (Util.handle_receive_messages client_socket (ReceiveFrom "server")
+        (Util.handle_receive_messages client_socket (ReceiveFrom "Server")
            onDisconnected)
         ()
     in
     let t2 =
       Thread.create
-        (Util.handle_send_messages (dup client_socket) (SendTo "client")
-           isConnected)
+        (Util.handle_send_messages (dup client_socket)
+           (SendAs client_name_as_string) isConnected)
         ()
     in
     Thread.join t1;

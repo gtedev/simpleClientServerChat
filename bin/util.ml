@@ -8,12 +8,12 @@ let get_server_socket_address () =
   ADDR_INET (server_address, server_port)
 
 (* Function to send a message to a socket destination and receive response *)
-let send_message client_fd message pseudo =
+let send_message client_fd message send_as =
   let message_bytes = Bytes.of_string message in
 
   (* Send message to the server *)
   let _ = send client_fd message_bytes 0 (Bytes.length message_bytes) [] in
-  print_endline (pseudo ^ ": " ^ message)
+  print_endline (send_as ^ ": " ^ message)
 
 let handle_receive_messages client_fd (ReceiveFrom from) onDisconnected () =
   (* Continuously receive messages from the client *)
@@ -36,9 +36,9 @@ let read_line_with_timeout timeout =
   if List.mem stdin_fd ready_read then Some (input_line In_channel.stdin)
   else None
 
-let handle_send_messages client_fd (SendTo send_to) isConnected () =
+let handle_send_messages client_fd (SendAs send_as) isConnected () =
   while isConnected () do
     match read_line_with_timeout 1.0 with
-    | Some message -> send_message client_fd message send_to
+    | Some message -> send_message client_fd message send_as
     | None -> ()
   done
