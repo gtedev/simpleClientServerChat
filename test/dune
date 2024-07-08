@@ -1,2 +1,2 @@
 (test
- (name test_helloWorld))
+ (name test_simpleClientServerChat))

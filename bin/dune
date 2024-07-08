@@ -1,5 +1,5 @@
 (executable
- (public_name helloWorld)
+ (public_name simpleClientServerChat)
  (name main)
  (modules types util client server main)
- (libraries threads unix helloWorld))
+ (libraries threads unix simpleClientServerChat))
