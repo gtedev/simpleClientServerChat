@@ -17,12 +17,13 @@ let handleClient client_fd () =
 
   let t1 =
     Thread.create
-      (Util.handle_receive_messages client_fd "client" onDisconnected)
+      (Util.handle_receive_messages client_fd (ReceiveFrom "client")
+         onDisconnected)
       ()
   in
   let t2 =
     Thread.create
-      (Util.handle_send_messages (dup client_fd) "server" isConnected)
+      (Util.handle_send_messages (dup client_fd) (SendTo "server") isConnected)
       ()
   in
   Thread.join t1;

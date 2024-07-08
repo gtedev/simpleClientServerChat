@@ -22,12 +22,14 @@ let initiate () =
   while isConnected () do
     let t1 =
       Thread.create
-        (Util.handle_receive_messages client_socket "server" onDisconnected)
+        (Util.handle_receive_messages client_socket (ReceiveFrom "server")
+           onDisconnected)
         ()
     in
     let t2 =
       Thread.create
-        (Util.handle_send_messages (dup client_socket) "client" isConnected)
+        (Util.handle_send_messages (dup client_socket) (SendTo "client")
+           isConnected)
         ()
     in
     Thread.join t1;
