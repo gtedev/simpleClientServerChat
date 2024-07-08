@@ -1,4 +1,5 @@
 open Unix
+open Types
 
 let initiate () =
   let client_socket = socket PF_INET SOCK_STREAM 0 in
@@ -7,16 +8,16 @@ let initiate () =
   connect client_socket server_socket_address;
 
   let mutex = Mutex.create () in
-  let status : int ref = ref 1 in
+  let status = ref Connected in
 
   let onDisconnected () =
     Mutex.lock mutex;
-    status := 0;
+    status := Disconnected;
     Mutex.unlock mutex;
     print_endline "Lost connection with the Server..."
   in
 
-  let isConnected () = !status = 1 in
+  let isConnected () = !status = Connected in
 
   while isConnected () do
     let t1 =

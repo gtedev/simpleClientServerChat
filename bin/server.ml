@@ -1,18 +1,19 @@
 open Unix
+open Types
 
 (* Handle client communication *)
 let handleClient client_fd () =
   let mutex = Mutex.create () in
-  let status : int ref = ref 1 in
+  let status = ref Connected in
 
   let onDisconnected () =
     Mutex.lock mutex;
-    status := 0;
+    status := Disconnected;
     Mutex.unlock mutex;
     print_endline "Client disconnected..."
   in
 
-  let isConnected () = !status = 1 in
+  let isConnected () = !status = Connected in
 
   let t1 =
     Thread.create
