@@ -38,6 +38,8 @@ end
 
 open ServerConfig
 
+let print_chat_message from body = printl (from ^ ": " ^ body)
+
 let send client_sock message =
   let bytes = Bytes.of_string (message ^ "\n") in
   let length = Bytes.length bytes in
@@ -51,12 +53,14 @@ let rec receive_messages client_sock client_name =
     let message = Bytes.sub_string buffer 0 bytes_read |> Message.toPayload in
     match message with
     | Some (SEND { from; body }) ->
-        printl (from ^ ":" ^ body) >>= fun () ->
-        Message.create_ack client_name "OK !"
+        print_chat_message from body >>= fun () ->
+        Message.create_ack client_name
+          ("[ACK] Message successfully reveived and processed by: "
+         ^ client_name)
         |> Message.toString |> send client_sock
         >>= fun _ -> receive_messages client_sock client_name
-    | Some (ACK { from; body }) ->
-        printl ("ACK from " ^ from ^ "-> " ^ body) >>= fun () ->
+    | Some (ACK payload) ->
+        printl payload.body >>= fun () ->
         receive_messages client_sock client_name
     | _ -> receive_messages client_sock client_name
 
@@ -67,7 +71,7 @@ let rec send_messages client_sock client_name =
       |> Message.create_send client_name
       |> Message.toString |> send client_sock
       >>= fun _ ->
-      printl (client_name ^ ":" ^ message) >>= fun _ ->
+      print_chat_message client_name message >>= fun _ ->
       send_messages client_sock client_name
   | None -> Lwt_unix.close client_sock
 
