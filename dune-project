@@ -19,7 +19,7 @@
  (name simpleClientServerChat)
  (synopsis "A short synopsis")
  (description "A longer description")
- (depends ocaml dune unix)
+ (depends ocaml dune unix lwt)
  (tags
   (topics "to describe" your project)))
 
