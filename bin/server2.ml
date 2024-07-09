@@ -1,10 +1,10 @@
 open Lwt
 open Lwt.Infix
-open Util2
 open Lwt_unix
 open Lwt_io
+open Chat
 
-(** Wait for incoming clients, accep them then, engage a chat on the accepted client socket
+(** Wait for incoming clients, accept them then, engage a chat on the accepted client socket
     @param server_sock Server socket.
 *)
 let wait_incoming_connections server_sock () =
@@ -18,7 +18,7 @@ let wait_incoming_connections server_sock () =
   accept_connections ()
 
 let main () =
-  let server_sock, sockaddr = get_server_socket_config () in
+  let server_sock, sockaddr = ServerConfig.socket_config () in
   setsockopt server_sock SO_REUSEADDR true;
 
   bind server_sock sockaddr >>= fun () ->
