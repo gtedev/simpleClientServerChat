@@ -1,59 +1,32 @@
-open Unix
-open Types
+open Lwt
+open Lwt.Infix
+open Lwt_unix
+open Lwt_io
+open Chat
 
-(* Handle client communication *)
-let handleClient client_fd () =
-  let mutex = Mutex.create () in
-  let status = ref Connected in
+(** Wait for incoming clients, accept them then, engage a chat on the accepted client socket
+    @param server_sock Server socket.
+*)
+let wait_incoming_connections server_sock () =
+  let rec accept_connections () =
+    accept server_sock >>= fun (client_sock, _) ->
+    async (fun () ->
+        printl "Client accepted...\n"
+        >>= start_chat client_sock ~client_name:"Serveur");
 
-  let onDisconnected () =
-    Mutex.lock mutex;
-    status := Disconnected;
-    Mutex.unlock mutex;
-    print_endline "Client disconnected..."
+    accept_connections ()
   in
 
-  let isConnected () = !status = Connected in
+  accept_connections ()
 
-  let t1 =
-    Thread.create
-      (Util.handle_receive_messages client_fd ~receive_from:"Client"
-         onDisconnected)
-      ()
-  in
-  let t2 =
-    Thread.create
-      (Util.handle_send_messages (dup client_fd) ~sender:"Server" isConnected)
-      ()
-  in
-  Thread.join t1;
-  Thread.join t2;
-  ()
+let main () =
+  let server_sock, sockaddr = ServerConfig.socket_config () in
+  setsockopt server_sock SO_REUSEADDR true;
 
-let initiate () =
-  let server_socket = socket PF_INET SOCK_STREAM 0 in
-  let server_socket_address = Util.get_server_socket_address () in
+  bind server_sock sockaddr >>= fun () ->
+  listen server_sock 1;
 
-  bind server_socket server_socket_address;
+  printl "Server listening on port 9000..."
+  >>= wait_incoming_connections server_sock
 
-  (* Listen for incoming connections *)
-  listen server_socket 1;
-  print_endline "Server is listening...";
-
-  (* Accept connections and handle them in an infinite loop *)
-  while true do
-    let client_socket, client_sockaddr = accept server_socket in
-    let client_address =
-      match client_sockaddr with
-      | ADDR_INET (addr, _) -> addr
-      | _ -> failwith "Unexpected client address type"
-    in
-
-    print_endline
-      ("Connection accepted from: " ^ string_of_inet_addr client_address);
-
-    Thread.create (handleClient client_socket) () |> Thread.join
-  done;
-
-  (* Close the server socket (though this line will never be reached) *)
-  close server_socket
+let initiate () = Lwt_main.run (main ())
