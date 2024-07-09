@@ -5,15 +5,10 @@ open Lwt_io
 module ServerConfig = struct
   let buffer_size = 1024
   let server_address = Unix.inet_addr_loopback
-
-  let get_server_socket_address () =
-    (* let server_address = inet_addr_of_string "127.0.0.1" in *)
-    let server_port = 9000 in
-
-    Lwt_unix.ADDR_INET (server_address, server_port)
+  let server_port = 9000
 
   let socket_config () =
-    let sockaddr = get_server_socket_address () in
+    let sockaddr = Lwt_unix.ADDR_INET (server_address, server_port) in
     let socket = Lwt_unix.socket PF_INET SOCK_STREAM 0 in
 
     (socket, sockaddr)
