@@ -10,7 +10,9 @@ open Chat
 let wait_incoming_connections server_sock () =
   let rec accept_connections () =
     accept server_sock >>= fun (client_sock, _) ->
-    async (fun () -> printl "Client accepted...\n" >>= start_chat client_sock);
+    async (fun () ->
+        printl "Client accepted...\n"
+        >>= start_chat client_sock ~client_name:"Serveur");
 
     accept_connections ()
   in

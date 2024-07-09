@@ -18,46 +18,66 @@ module Message = struct
   type message_payload = { from : string; body : string }
   type t = SEND of message_payload | ACK of message_payload
 
-  let pipe = String.concat "|"
-    
+  let separator = '|'
+  let join_with_pipe = String.concat (separator |> String.make 1)
+  let create_send from body = SEND { from; body }
+  let create_ack from body = ACK { from; body }
+
   let toString message =
     match message with
-    | SEND payload -> ["SEND"; payload.from; payload.body] |> pipe
-    | ACK payload -> ["ACK"; payload.from; payload.body] |> pipe
+    | SEND payload -> [ "SEND"; payload.from; payload.body ] |> join_with_pipe
+    | ACK payload -> [ "ACK"; payload.from; payload.body ] |> join_with_pipe
+
+  let toPayload messageString =
+    let params = String.split_on_char separator messageString in
+    match params with
+    | [ "SEND"; from; body ] -> Some (SEND { from; body })
+    | [ "ACK"; from; body ] -> Some (ACK { from; body })
+    | _ -> None
 end
 
+open ServerConfig
 
-
-open  ServerConfig
-
-let send client_sock message = 
+let send client_sock message =
   let bytes = Bytes.of_string (message ^ "\n") in
   let length = Bytes.length bytes in
   Lwt_unix.send client_sock bytes 0 length []
 
-let rec receive_messages client_sock =
+let rec receive_messages client_sock client_name =
   let buffer = Bytes.create buffer_size in
   Lwt_unix.recv client_sock buffer 0 buffer_size [] >>= fun bytes_read ->
   if bytes_read = 0 then printl "Connection closed..."
   else
-    let message = Bytes.sub_string buffer 0 bytes_read in
-    printl ("Received: " ^ message) >>= fun () -> receive_messages client_sock
+    let message = Bytes.sub_string buffer 0 bytes_read |> Message.toPayload in
+    match message with
+    | Some (SEND { from; body }) ->
+        printl (from ^ ":" ^ body) >>= fun () ->
+        Message.create_ack client_name "OK !"
+        |> Message.toString |> send client_sock
+        >>= fun _ -> receive_messages client_sock client_name
+    | Some (ACK { from; body }) ->
+        printl ("ACK from " ^ from ^ "-> " ^ body) >>= fun () ->
+        receive_messages client_sock client_name
+    | _ -> receive_messages client_sock client_name
 
-let rec send_messages client_sock =
+let rec send_messages client_sock client_name =
   Lwt_io.read_line_opt stdin >>= function
   | Some message ->
-      send client_sock message
-      >>= fun _ -> send_messages client_sock
+      message
+      |> Message.create_send client_name
+      |> Message.toString |> send client_sock
+      >>= fun _ ->
+      printl (client_name ^ ":" ^ message) >>= fun _ ->
+      send_messages client_sock client_name
   | None -> Lwt_unix.close client_sock
 
 (** Start a bidirectionnal chat with the given socket.
   The function handles setting up sending and receiving events.
   @param client_sock Client socket.
 *)
-let start_chat client_sock () =
-  let send_task = send_messages client_sock in
-  let receive_task = receive_messages client_sock in
+let start_chat client_sock ~client_name () =
+  let send_job = send_messages client_sock client_name in
+  let receive_job = receive_messages client_sock client_name in
 
-  (* Wait for both tasks to complete *)
-  Lwt.join [ send_task; receive_task ]
-
+  (* With pick, it ensures one task stops if the other stops before*)
+  Lwt.pick [ send_job; receive_job ]
