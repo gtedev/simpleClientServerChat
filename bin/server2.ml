@@ -8,9 +8,7 @@ let wait_incoming_connections server_sock () =
   let rec accept_connections () =
     accept server_sock >>= fun (client_sock, _) ->
     async (fun () ->
-
-        log_console "Client connected.\n" ()
-         >>= start_chat client_sock);
+        log_console "Client accepted...\n" () >>= start_chat client_sock);
 
     accept_connections ()
   in
