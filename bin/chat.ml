@@ -5,6 +5,9 @@ let buffer_size = 1024
 let server_address = "127.0.0.1"
 let server_port = 50000
 
+(** Setup the formatter to allow the use of stylished text in Console with Spectrum.*)
+let setup_console_formatter () = Spectrum.prepare_ppf Format.std_formatter ()
+
 let get_server_socket_config () =
   let socket = Lwt_unix.socket PF_INET SOCK_STREAM 0 in
 
@@ -14,18 +17,15 @@ let addr_inet server_address server_port =
   Lwt_unix.ADDR_INET (Unix.inet_addr_of_string server_address, server_port)
 
 let log_title message =
-  Spectrum.prepare_ppf Format.std_formatter ();
   Spectrum.Simple.printf "@{<bold,teal>%s@}\n" message;
   Lwt.return_unit
 
 let print_chat_message client_name body =
-  Spectrum.prepare_ppf Format.std_formatter ();
   Spectrum.Simple.printf "@{<bold, fuchsia>%s@} @{<white>%s@}\n"
     (client_name ^ ": ") body;
   Lwt.return_unit
 
 let log_info message =
-  Spectrum.prepare_ppf Format.std_formatter ();
   Spectrum.Simple.printf "@{<italic,teal>%s@}\n" ("==> LOG: " ^ message);
   Lwt.return_unit
 
@@ -88,6 +88,8 @@ let rec send_messages_to_socket sock client_name =
   @param sock Socket from which it sends and receives messages
 *)
 let start_chat sock ~client_name () =
+  setup_console_formatter ();
+
   let send_job = send_messages_to_socket sock client_name in
   let receive_job = receive_messages_from_socket sock client_name in
 
