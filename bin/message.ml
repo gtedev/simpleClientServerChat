@@ -21,7 +21,7 @@ end
    - ["SEND|bob|how are you|1720619776"]
    - ["ACK|alice|good|1720619776"]
 *)
-let toString = function
+let to_string = function
   | SEND { sender; body; timestamp } ->
       [ "SEND"; sender; body; Float.to_string_or_default timestamp ]
       |> join_with_pipe
@@ -30,9 +30,9 @@ let toString = function
       |> join_with_pipe
 
 (** Convert from the format ["type|sender|body|timestamp"] to a message record*)
-let toPayload messageString =
+let to_payload_opt message_string =
   let params =
-    String.split_on_char separator messageString |> List.map Base.String.strip
+    String.split_on_char separator message_string |> List.map Base.String.strip
   in
   match params with
   | [ "SEND"; sender; body; timestamp ] ->
