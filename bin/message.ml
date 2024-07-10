@@ -13,7 +13,9 @@ let create_ack from timestamp_sent body = ACK { from; body; timestamp_sent }
 
 module Float = struct
   let to_string_or_default (value : float option) =
-    match value with Some v -> string_of_float v | None -> ""
+    value
+    |> Option.map string_of_float 
+    |> Option.value ~default:""
 end
 
 let toString message =

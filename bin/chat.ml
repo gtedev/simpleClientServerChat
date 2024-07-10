@@ -27,9 +27,9 @@ let rec receive_messages client_sock client_name =
   Lwt_unix.recv client_sock buffer 0 buffer_size [] >>= fun bytes_read ->
   if bytes_read = 0 then printl "Connection closed..."
   else
-    let message = Bytes.sub_string buffer 0 bytes_read |> Message.toPayload in
+    let message = Bytes.sub_string buffer 0 bytes_read in
 
-    match message with
+    message |> Message.toPayload |> function
     | Some (SEND { from; body; timestamp_sent }) ->
         (* For simplicity. let's pretend it takes 1s to process the msg *)
         Thread.delay 1.0;
@@ -43,9 +43,7 @@ let rec receive_messages client_sock client_name =
         let roundtrip_time_message =
           match payload.timestamp_sent with
           | Some timestamp_sent ->
-              let roundtripTime =
-                (Unix.time ()) -. timestamp_sent
-              in
+              let roundtripTime = Unix.time () -. timestamp_sent in
               (roundtripTime |> string_of_float) ^ " seconde(s)"
           | None -> "Unknown"
         in
