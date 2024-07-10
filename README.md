@@ -3,7 +3,22 @@
 
 A Simple one to one chat between a client and a server, meant to be run locally with bidirectional communication with sockets.
 
-The application can be start on either client or server mode.
+Some rules:
+- The server is waiting for incoming client connections
+- When a client terminates a connection, the server continues to wait for another client
+- From both side, each message automatically sends back an aknowledgment message with a roundtrip information
+- Message are transmitted over the network with each parameter separated by `|`. 
+```bash
+   type|sender|body|timestamp
+
+   # Example
+   # SEND|bob|how are you|1720619776
+   # ACK|alice|good|1720619776
+
+   #`timestamp` allowing to calculate the `roundtrip time`
+```
+
+The application can be start on either `client` or `server` mode.
 
 ## How to start
 
