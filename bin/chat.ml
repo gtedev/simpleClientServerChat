@@ -44,9 +44,9 @@ let rec receive_messages client_sock client_name =
           match payload.timestamp_sent with
           | Some timestamp_sent ->
               let roundtripTime =
-                (Unix.time () |> int_of_float) - (timestamp_sent |> int_of_float)
+                (Unix.time ()) -. timestamp_sent
               in
-              (roundtripTime |> string_of_int) ^ " seconde(s)"
+              (roundtripTime |> string_of_float) ^ " seconde(s)"
           | None -> "Unknown"
         in
         printl (payload.body ^ " - Roundtrip time: " ^ roundtrip_time_message)
