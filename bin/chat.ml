@@ -15,50 +15,50 @@ end
 
 open ServerConfig
 
-let print_chat_message from body = printl (from ^ ": " ^ body)
+let print_chat_message client_name body = printl (client_name ^ ": " ^ body)
 
-let send client_sock message =
+let send (client : Lwt_unix.file_descr) message =
   let bytes = Bytes.of_string (message ^ "\n") in
   let length = Bytes.length bytes in
-  Lwt_unix.send client_sock bytes 0 length []
+  Lwt_unix.send client bytes 0 length []
 
 let rec receive_messages client_sock client_name =
   let buffer = Bytes.create buffer_size in
-  Lwt_unix.recv client_sock buffer 0 buffer_size [] >>= fun bytes_read ->
-  if bytes_read = 0 then printl "Connection closed..."
+  Lwt_unix.recv client_sock buffer 0 buffer_size [] >>= fun bytes_length ->
+  if bytes_length = 0 then printl "Connection closed..."
   else
-    let message = Bytes.sub_string buffer 0 bytes_read in
+    let message = Bytes.sub_string buffer 0 bytes_length in
 
     message |> Message.toPayload |> function
-    | Some (SEND { from; body; timestamp }) ->
+    | Some (SEND { sender; body; timestamp }) ->
         (* For simplicity. let's pretend it takes 1s to process the msg *)
         Thread.delay 1.0;
 
-        print_chat_message from body >>= fun () ->
-        "[ACK] Message successfully reveived and processed by: " ^ client_name
+        print_chat_message sender body >>= fun () ->
+        "[ACK] Message reveived by: " ^ client_name
         |> Message.create_ack client_name timestamp
         |> Message.toString |> send client_sock
         >>= fun _ -> receive_messages client_sock client_name
     | Some (ACK payload) ->
-        let roundtrip_time_message =
+        let roundtrip__message =
           payload.timestamp
           |> Option.map (fun t ->
                  (Unix.time () -. t |> string_of_float) ^ " seconde(s)")
           |> Option.value ~default:"Unknown"
         in
-        printl (payload.body ^ " - Roundtrip time: " ^ roundtrip_time_message)
+        printl (payload.body ^ " - Roundtrip time: " ^ roundtrip__message)
         >>= fun () -> receive_messages client_sock client_name
     | _ -> receive_messages client_sock client_name
 
 let rec send_messages client_sock client_name =
   Lwt_io.read_line_opt stdin >>= function
-  | Some message ->
+  | Some input ->
       let timestamp = Some (Unix.time ()) in
-      message
+      input
       |> Message.create_send client_name timestamp
       |> Message.toString |> send client_sock
       >>= fun _ ->
-      print_chat_message client_name message >>= fun _ ->
+      print_chat_message client_name input >>= fun _ ->
       send_messages client_sock client_name
   | None -> Lwt_unix.close client_sock
 
