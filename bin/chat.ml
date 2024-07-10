@@ -4,7 +4,7 @@ open Lwt_io
 module ServerConfig = struct
   let buffer_size = 1024
   let server_address = Unix.inet_addr_loopback
-  let server_port = 9000
+  let server_port = 50000
 
   let socket_config () =
     let sockaddr = Lwt_unix.ADDR_INET (server_address, server_port) in
