@@ -20,9 +20,9 @@ let send (client : Lwt_unix.file_descr) message =
   let length = Bytes.length bytes in
   Lwt_unix.send client bytes 0 length []
 
-let rec receive_messages client_sock client_name =
+let rec receive_messages_from_socket sock client_name =
   let buffer = Bytes.create buffer_size in
-  Lwt_unix.recv client_sock buffer 0 buffer_size [] >>= fun bytes_length ->
+  Lwt_unix.recv sock buffer 0 buffer_size [] >>= fun bytes_length ->
   if bytes_length = 0 then printl "Connection closed..."
   else
     let message = Bytes.sub_string buffer 0 bytes_length in
@@ -35,8 +35,8 @@ let rec receive_messages client_sock client_name =
         print_chat_message sender body >>= fun () ->
         "[ACK] Message reveived by: " ^ client_name
         |> Message.create_ack client_name timestamp
-        |> Message.toString |> send client_sock
-        >>= fun _ -> receive_messages client_sock client_name
+        |> Message.toString |> send sock
+        >>= fun _ -> receive_messages_from_socket sock client_name
     | Some (ACK payload) ->
         let roundtrip__message =
           payload.timestamp
@@ -45,28 +45,28 @@ let rec receive_messages client_sock client_name =
           |> Option.value ~default:"Unknown"
         in
         printl (payload.body ^ " - Roundtrip time: " ^ roundtrip__message)
-        >>= fun () -> receive_messages client_sock client_name
-    | _ -> receive_messages client_sock client_name
+        >>= fun () -> receive_messages_from_socket sock client_name
+    | _ -> receive_messages_from_socket sock client_name
 
-let rec send_messages client_sock client_name =
+let rec send_messages_to_socket sock client_name =
   Lwt_io.read_line_opt stdin >>= function
   | Some input ->
       let timestamp = Some (Unix.time ()) in
       input
       |> Message.create_send client_name timestamp
-      |> Message.toString |> send client_sock
+      |> Message.toString |> send sock
       >>= fun _ ->
       print_chat_message client_name input >>= fun _ ->
-      send_messages client_sock client_name
-  | None -> Lwt_unix.close client_sock
+      send_messages_to_socket sock client_name
+  | None -> Lwt_unix.close sock
 
 (** Start a bidirectionnal chat with the given socket.
   The function handles setting up sending and receiving events.
-  @param client_sock Client socket.
+  @param sock Socket from which it sends and receives messages
 *)
-let start_chat client_sock ~client_name () =
-  let send_job = send_messages client_sock client_name in
-  let receive_job = receive_messages client_sock client_name in
+let start_chat sock ~client_name () =
+  let send_job = send_messages_to_socket sock client_name in
+  let receive_job = receive_messages_from_socket sock client_name in
 
   (* With pick, it ensures one task stops if the other stops before*)
   Lwt.pick [ send_job; receive_job ]
