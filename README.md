@@ -7,11 +7,11 @@ Some rules:
 - The server is waiting for incoming client connections
 - When a client terminates a connection, the server continues to wait for another client
 - From both side, each message automatically sends back an aknowledgment message with a roundtrip information
-- Message are transmitted over the network with each parameter separated by `|`. 
+- Message are transmitted over the network with each parameter separated by `|`. First parameter represents the type of message (i.e `SEND`, `ACK`).
 ```bash
    type|sender|body|timestamp
 
-   # Example
+   # Examples
    # SEND|bob|how are you|1720619776
    # ACK|alice|good|1720619776
 
@@ -28,7 +28,7 @@ As the project is build with `dune`, the project needs to be built with
 dune build
 ```
 
-Optionally, if the code has been edited, there is also the possibility to run the script `build.sh`, which runs the build and the code formatting:
+Optionally, there is the possibility to run build and code formatting with the script `build.sh`:
 ```bash
 ./build.sh
 ```
@@ -45,7 +45,7 @@ dune exec simpleClientServerChat s
 dune exec simpleClientServerChat c
 ```
 
-It is possible optionally to pass a client name,by default it will be `"Unknown"`
+It is possible optionally to pass a client name, by default it will be `"Unknown"`
 ```
 dune exec simpleClientServerChat c "Bob"
 ```
