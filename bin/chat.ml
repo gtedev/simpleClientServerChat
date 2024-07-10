@@ -30,20 +30,20 @@ let rec receive_messages client_sock client_name =
     let message = Bytes.sub_string buffer 0 bytes_read in
 
     message |> Message.toPayload |> function
-    | Some (SEND { from; body; timestamp_sent }) ->
+    | Some (SEND { from; body; timestamp }) ->
         (* For simplicity. let's pretend it takes 1s to process the msg *)
         Thread.delay 1.0;
 
         print_chat_message from body >>= fun () ->
         "[ACK] Message successfully reveived and processed by: " ^ client_name
-        |> Message.create_ack client_name timestamp_sent
+        |> Message.create_ack client_name timestamp
         |> Message.toString |> send client_sock
         >>= fun _ -> receive_messages client_sock client_name
     | Some (ACK payload) ->
         let roundtrip_time_message =
-          match payload.timestamp_sent with
-          | Some timestamp_sent ->
-              let roundtripTime = Unix.time () -. timestamp_sent in
+          match payload.timestamp with
+          | Some timestamp ->
+              let roundtripTime = Unix.time () -. timestamp in
               (roundtripTime |> string_of_float) ^ " seconde(s)"
           | None -> "Unknown"
         in
@@ -54,9 +54,9 @@ let rec receive_messages client_sock client_name =
 let rec send_messages client_sock client_name =
   Lwt_io.read_line_opt stdin >>= function
   | Some message ->
-      let timestamp_sent = Some (Unix.time ()) in
+      let timestamp = Some (Unix.time ()) in
       message
-      |> Message.create_send client_name timestamp_sent
+      |> Message.create_send client_name timestamp
       |> Message.toString |> send client_sock
       >>= fun _ ->
       print_chat_message client_name message >>= fun _ ->
