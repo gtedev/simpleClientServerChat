@@ -20,6 +20,7 @@ let wait_incoming_connections server_sock () =
 
 let main () =
   let _ = log_title "=========== Server ===========\n\n" in
+  let _ = log_title "Welcome to the chat ! \n\n" in
   let server_sock, server_addr, server_port = get_server_socket_config () in
   let sockaddr = addr_inet server_addr server_port in
 
@@ -32,6 +33,7 @@ let main () =
     ("Server listening on address " ^ server_addr ^ ", port "
     ^ (server_port |> string_of_int)
     ^ "...")
+  >>= fun _ -> log_info "Waiting for incoming clients to connect..."
   >>= wait_incoming_connections server_sock
 
 let initiate () = Lwt_main.run (main ())
