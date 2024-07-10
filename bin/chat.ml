@@ -58,15 +58,17 @@ module Message = struct
     let params = String.split_on_char separator messageString in
     match params with
     | [ "SEND"; from; body; timestamp_sent ] ->
-        print_endline ("Gerard kaka: " ^ timestamp_sent);
+        print_endline ("Gerard kaka: " ^from^body^ timestamp_sent);
+        let vv = float_of_string_opt (Base.String.strip timestamp_sent) in
         Some
           (SEND
-             { from; body; timestamp_sent = float_of_string_opt timestamp_sent })
+             { from = from; body = body; timestamp_sent = vv })
     | [ "ACK"; from; body; timestamp_sent ] ->
       print_endline ("Gerard fufufuf: " ^ timestamp_sent);
+      let vv = float_of_string_opt (Base.String.strip timestamp_sent) in
         Some
           (ACK
-             { from; body; timestamp_sent = float_of_string_opt timestamp_sent })
+             { from; body; timestamp_sent = vv })
     | _ -> None
 end
 
@@ -84,17 +86,35 @@ let rec receive_messages client_sock client_name =
   Lwt_unix.recv client_sock buffer 0 buffer_size [] >>= fun bytes_read ->
   if bytes_read = 0 then printl "Connection closed..."
   else
-    let message = Bytes.sub_string buffer 0 bytes_read |> Message.toPayload in
+    let message = 
+        Bytes.sub_string buffer 0 bytes_read 
+        |> fun x ->
+          print_endline ("Gerard JJJ:" ^ x);
+          x
+        |> Message.toPayload
+        |> fun x ->
+            let totot = 
+            match x with 
+            | Some SEND paload -> if Option.is_some paload.timestamp_sent then "SEND.timestamp_sent.Some" else "SEND.timestamp_sent.None"
+            | Some ACK paload -> if Option.is_some paload.timestamp_sent then "ACK.timestamp_sent.Some" else "ACK.timestamp_sent.None"
+            | None -> "" 
+            in
+            print_endline ("Gerard XXX:" ^ totot);
+           x
+        in
+
     match message with
     | Some (SEND { from; body; timestamp_sent }) ->
 
+        (* For simplicity. let's pretend it takes 1s to process the msg *)
+        Thread.delay 1.0;
 
         let vava = 
           match timestamp_sent with 
           | Some _ -> "Some"
           | None -> "None"
         in
-        print_endline ("Gerard abdou :" ^ vava);
+        print_endline ("Gerard abdou :" ^from^body^ vava);
 
         print_chat_message from body >>= fun () ->
         "[ACK] Message successfully reveived and processed by: " ^ client_name
@@ -122,12 +142,7 @@ let rec receive_messages client_sock client_name =
 let rec send_messages client_sock client_name =
   Lwt_io.read_line_opt stdin >>= function
   | Some message ->
-      (* let myTime = 1000.0 in *)
       let timestamp_sent = Some (Unix.time ()) in
-
-      (* print_endline "Gerard log"
-      print_float myTime; *)
-
       message
       |> Message.create_send client_name timestamp_sent
       |> Message.toString |> send client_sock
