@@ -36,7 +36,8 @@ dune exec simpleClientServerChat c "Bob"
 ```
 
 ## Some technical aspects
-It bas been chosen to use the library `Lwt` in order to take benefit of `asynchronous non blocking operations aspect`.
+- It bas been chosen to use the library `Lwt` in order to take benefit of `asynchronous non blocking operations aspect`.
+- The UI is simply the `console` application, but the application uses the library `spectrum` to enhance a bit the logs and messages with colors while being written in the console.
 
 ## Room for improvements
 The code that handles messages is directly printing into the `console`, but it would have been better to pass callbacks (`onDisconnected`, `onSent` etc), to improve the decoupling between
