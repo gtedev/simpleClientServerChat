@@ -34,6 +34,10 @@ let send sock message =
   let length = Bytes.length bytes in
   Lwt_unix.send sock bytes 0 length []
 
+(** Recursively waiting for receiving messages from the given socket
+  @param sock Socket to receive messages from.
+  @param client_name The name used as sender of the ACK message.
+*)
 let rec receive_messages_from_socket sock client_name =
   let buffer = Bytes.create buffer_size in
   Lwt_unix.recv sock buffer 0 buffer_size [] >>= fun bytes_length ->
@@ -43,7 +47,7 @@ let rec receive_messages_from_socket sock client_name =
 
     message |> Message.toPayload |> function
     | Some (SEND { sender; body; timestamp }) ->
-        (* For simplicity. let's pretend it takes 1s to process the msg *)
+        (* For simplicity. let's pretend it takes 1 second to process the msg *)
         Thread.delay 1.0;
 
         print_chat_message sender body >>= fun () ->
@@ -62,6 +66,11 @@ let rec receive_messages_from_socket sock client_name =
         >>= fun () -> receive_messages_from_socket sock client_name
     | _ -> receive_messages_from_socket sock client_name
 
+(** Recursively waiting for inputs from the keyboard 
+to send messages on the given socket
+@param sock Socket to send messages on.
+@param client_name The name used as sender of the message.
+*)
 let rec send_messages_to_socket sock client_name =
   Lwt_io.read_line_opt stdin >>= function
   | Some input ->

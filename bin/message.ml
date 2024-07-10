@@ -16,6 +16,11 @@ module Float = struct
     value |> Option.map string_of_float |> Option.value ~default:""
 end
 
+(** Convert a message record to the format ["type|sender|body|timestamp"]
+  - Examples:
+   - ["SEND|bob|how are you|1720619776"]
+   - ["ACK|alice|good|1720619776"]
+*)
 let toString = function
   | SEND { sender; body; timestamp } ->
       [ "SEND"; sender; body; Float.to_string_or_default timestamp ]
@@ -24,6 +29,7 @@ let toString = function
       [ "ACK"; sender; body; Float.to_string_or_default timestamp ]
       |> join_with_pipe
 
+(** Convert from the format ["type|sender|body|timestamp"] to a message record*)
 let toPayload messageString =
   let params =
     String.split_on_char separator messageString |> List.map Base.String.strip
