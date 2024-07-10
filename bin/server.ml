@@ -20,7 +20,6 @@ let wait_incoming_connections server_sock () =
 
 let main () =
   let _ = log_title "=========== Server ===========\n\n" in
-  let _ = log_title "Welcome to the chat ! \n\n" in
   let server_sock, server_addr, server_port = get_server_socket_config () in
   let sockaddr = addr_inet server_addr server_port in
 
