@@ -20,6 +20,7 @@ let wait_incoming_connections server_sock () =
   accept_connections ()
 
 let main () =
+  let _ = printl "=========== Server ===========\n\n\n" in
   let server_sock, sockaddr = get_server_socket_config () in
   setsockopt server_sock SO_REUSEADDR true;
 
