@@ -1,6 +1,6 @@
 open Lwt.Infix
 open Lwt_io
-(* open Spectrum *)
+
 let buffer_size = 1024
 let server_address = "127.0.0.1"
 let server_port = 50000
@@ -14,24 +14,25 @@ let addr_inet server_address server_port =
   Lwt_unix.ADDR_INET (Unix.inet_addr_of_string server_address, server_port)
 
 let log_title message =
-    Spectrum.prepare_ppf Format.std_formatter (); (* prints to stdout *)
-    Spectrum.Simple.printf "@{<bold,teal>%s@}\n" message;
-    Lwt.return_unit
+  Spectrum.prepare_ppf Format.std_formatter ();
+  Spectrum.Simple.printf "@{<bold,teal>%s@}\n" message;
+  Lwt.return_unit
 
 let print_chat_message client_name body =
-  Spectrum.prepare_ppf Format.std_formatter (); (* prints to stdout *)
-  Spectrum.Simple.printf "@{<bold, fuchsia>%s@} @{<white>%s@}\n" (client_name ^ ": ") body;
+  Spectrum.prepare_ppf Format.std_formatter ();
+  Spectrum.Simple.printf "@{<bold, fuchsia>%s@} @{<white>%s@}\n"
+    (client_name ^ ": ") body;
   Lwt.return_unit
 
 let log_info message =
-  Spectrum.prepare_ppf Format.std_formatter (); (* prints to stdout *)
+  Spectrum.prepare_ppf Format.std_formatter ();
   Spectrum.Simple.printf "@{<italic,teal>%s@}\n" ("==> LOG: " ^ message);
   Lwt.return_unit
 
-let send (client : Lwt_unix.file_descr) message =
+let send sock message =
   let bytes = Bytes.of_string (message ^ "\n") in
   let length = Bytes.length bytes in
-  Lwt_unix.send client bytes 0 length []
+  Lwt_unix.send sock bytes 0 length []
 
 let rec receive_messages_from_socket sock client_name =
   let buffer = Bytes.create buffer_size in
@@ -82,4 +83,5 @@ let start_chat sock ~client_name () =
   let receive_job = receive_messages_from_socket sock client_name in
 
   (* With pick, it ensures one task stops if the other stops before*)
+  (* It means if receive receives a closed connection notification, Lwt will try to cancel send job*)
   Lwt.pick [ send_job; receive_job ]

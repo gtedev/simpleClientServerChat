@@ -32,7 +32,8 @@ let main () =
     ("Server listening on address " ^ server_addr ^ ", port "
     ^ (server_port |> string_of_int)
     ^ "...")
-  >>= fun _ -> log_info "Waiting for incoming clients to connect..."
+  >>= fun _ ->
+  log_info "Waiting for incoming clients to connect..."
   >>= wait_incoming_connections server_sock
 
 let initiate () = Lwt_main.run (main ())
