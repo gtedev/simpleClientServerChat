@@ -45,26 +45,26 @@ let rec receive_messages_from_socket sock client_name =
   else
     let message = Bytes.sub_string buffer 0 bytes_length in
 
-    message |> Message.to_payload_opt |> function
-    | Some (SEND { sender; body; timestamp }) ->
-        (* For simplicity. let's pretend it takes 1 second to process the msg *)
-        Thread.delay 1.0;
+    (message |> Message.to_payload_opt |> function
+     | Some (SEND { sender; body; timestamp }) ->
+         (* For simplicity. let's pretend it takes 1 second to process the msg *)
+         Thread.delay 1.0;
 
-        print_chat_message sender body >>= fun () ->
-        "[ACK] Message received by: " ^ client_name
-        |> Message.create_ack client_name timestamp
-        |> Message.to_string |> send sock
-        >>= fun _ -> receive_messages_from_socket sock client_name
-    | Some (ACK payload) ->
-        let roundtrip__message =
-          payload.timestamp
-          |> Option.map (fun t ->
-                 (Unix.time () -. t |> string_of_float) ^ " seconde(s)")
-          |> Option.value ~default:"Unknown"
-        in
-        log_info (payload.body ^ " - Roundtrip time: " ^ roundtrip__message)
-        >>= fun () -> receive_messages_from_socket sock client_name
-    | _ -> receive_messages_from_socket sock client_name
+         print_chat_message sender body >>= fun () ->
+         "[ACK] Message received by: " ^ client_name
+         |> Message.create_ack client_name timestamp
+         |> Message.to_string |> send sock
+         >>= fun _ -> Lwt.return_unit
+     | Some (ACK payload) ->
+         let roundtrip__message =
+           payload.timestamp
+           |> Option.map (fun t ->
+                  (Unix.time () -. t |> string_of_float) ^ " seconde(s)")
+           |> Option.value ~default:"Unknown"
+         in
+         log_info (payload.body ^ " - Roundtrip time: " ^ roundtrip__message)
+     | _ -> Lwt.return_unit)
+    >>= fun () -> receive_messages_from_socket sock client_name
 
 (** Recursively waiting for inputs from the keyboard 
 to send messages on the given socket
