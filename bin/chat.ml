@@ -43,8 +43,7 @@ let rec receive_messages client_sock client_name =
         let roundtrip_time_message =
           payload.timestamp
           |> Option.map (fun t ->
-                 Unix.time () -. t |> string_of_float |> fun x ->
-                 x ^ " seconde(s)")
+                 (Unix.time () -. t |> string_of_float) ^ " seconde(s)")
           |> Option.value ~default:"Unknown"
         in
         printl (payload.body ^ " - Roundtrip time: " ^ roundtrip_time_message)
