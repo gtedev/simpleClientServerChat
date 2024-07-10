@@ -11,8 +11,8 @@ let wait_incoming_connections server_sock () =
   let rec accept_connections () =
     accept server_sock >>= fun (client_sock, _) ->
     async (fun () ->
-        printl "Client accepted...\n"
-        >>= start_chat client_sock ~client_name:"Serveur");
+        log_info "1 new client has joined the chat...\n"
+        >>= start_chat client_sock ~client_name:"Server");
 
     accept_connections ()
   in
@@ -29,7 +29,7 @@ let main () =
   bind server_sock sockaddr >>= fun () ->
   listen server_sock 1;
 
-  printl
+  log_info
     ("Server listening on address " ^ server_addr ^ ", port "
     ^ (server_port |> string_of_int)
     ^ "...")

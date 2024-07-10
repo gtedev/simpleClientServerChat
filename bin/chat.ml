@@ -13,7 +13,10 @@ let get_server_socket_config () =
 let addr_inet server_address server_port =
   Lwt_unix.ADDR_INET (Unix.inet_addr_of_string server_address, server_port)
 
-let print_chat_message client_name body = printl (client_name ^ ": " ^ body)
+let print_chat_message client_name body =
+  printl ("< " ^ client_name ^ " >: " ^ body)
+
+let log_info message = printl ("==> LOG: " ^ message)
 
 let send (client : Lwt_unix.file_descr) message =
   let bytes = Bytes.of_string (message ^ "\n") in
@@ -23,7 +26,7 @@ let send (client : Lwt_unix.file_descr) message =
 let rec receive_messages_from_socket sock client_name =
   let buffer = Bytes.create buffer_size in
   Lwt_unix.recv sock buffer 0 buffer_size [] >>= fun bytes_length ->
-  if bytes_length = 0 then printl "Connection closed..."
+  if bytes_length = 0 then log_info "Connection closed..."
   else
     let message = Bytes.sub_string buffer 0 bytes_length in
 
@@ -33,7 +36,7 @@ let rec receive_messages_from_socket sock client_name =
         Thread.delay 1.0;
 
         print_chat_message sender body >>= fun () ->
-        "[ACK] Message reveived by: " ^ client_name
+        "[ACK] Message received by: " ^ client_name
         |> Message.create_ack client_name timestamp
         |> Message.toString |> send sock
         >>= fun _ -> receive_messages_from_socket sock client_name
@@ -44,7 +47,7 @@ let rec receive_messages_from_socket sock client_name =
                  (Unix.time () -. t |> string_of_float) ^ " seconde(s)")
           |> Option.value ~default:"Unknown"
         in
-        printl (payload.body ^ " - Roundtrip time: " ^ roundtrip__message)
+        log_info (payload.body ^ " - Roundtrip time: " ^ roundtrip__message)
         >>= fun () -> receive_messages_from_socket sock client_name
     | _ -> receive_messages_from_socket sock client_name
 

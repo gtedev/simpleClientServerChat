@@ -9,7 +9,7 @@ let main client_name =
   let sockaddr = addr_inet server_addr server_port in
 
   connect server_sock sockaddr
-  >>= (fun () -> printl ("Connection to server on " ^ server_addr))
+  >>= (fun () -> log_info ("Connection to server on " ^ server_addr))
   >>= start_chat server_sock ~client_name
 
 let initiate ~client_name = Lwt_main.run (main client_name)
