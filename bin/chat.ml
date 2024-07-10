@@ -43,15 +43,15 @@ module Message = struct
         |> join_with_pipe
 
   let toPayload messageString =
-    print_endline ("Gerard messageString: " ^ messageString);
-    let params = String.split_on_char separator messageString in
+    let params = 
+        String.split_on_char separator messageString
+        |> List.map Base.String.strip 
+       in
     match params with
     | [ "SEND"; from; body; timestamp_sent ] ->
-        let vv = float_of_string_opt (Base.String.strip timestamp_sent) in
-        Some (SEND { from; body; timestamp_sent = vv })
+        Some (SEND { from; body; timestamp_sent = float_of_string_opt  timestamp_sent })
     | [ "ACK"; from; body; timestamp_sent ] ->
-        let vv = float_of_string_opt (Base.String.strip timestamp_sent) in
-        Some (ACK { from; body; timestamp_sent = vv })
+        Some (ACK { from; body; timestamp_sent = float_of_string_opt  timestamp_sent })
     | _ -> None
 end
 
@@ -70,9 +70,7 @@ let rec receive_messages client_sock client_name =
   if bytes_read = 0 then printl "Connection closed..."
   else
     let message =
-      Bytes.sub_string buffer 0 bytes_read |> fun x ->
-      print_endline ("Gerard JJJ:" ^ x);
-      x |> Message.toPayload
+      Bytes.sub_string buffer 0 bytes_read |> Message.toPayload
     in
 
     match message with
