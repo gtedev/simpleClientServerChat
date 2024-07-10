@@ -4,7 +4,7 @@ open Lwt_io
 open Chat
 
 let main client_name =
-  let server_sock, sockaddr = ServerConfig.socket_config () in
+  let server_sock, sockaddr = get_server_socket_config () in
 
   connect server_sock sockaddr >>= fun () ->
   printl "Connection server successfully to !"

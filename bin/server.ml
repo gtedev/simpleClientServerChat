@@ -20,7 +20,7 @@ let wait_incoming_connections server_sock () =
   accept_connections ()
 
 let main () =
-  let server_sock, sockaddr = ServerConfig.socket_config () in
+  let server_sock, sockaddr = get_server_socket_config () in
   setsockopt server_sock SO_REUSEADDR true;
 
   bind server_sock sockaddr >>= fun () ->
