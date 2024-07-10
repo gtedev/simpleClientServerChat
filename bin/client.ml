@@ -5,7 +5,8 @@ open Chat
 
 let main client_name =
   let _ = printl "=========== Client ===========\n\n\n" in
-  let server_sock, sockaddr = get_server_socket_config () in
+  let server_sock, server_addr, server_port = get_server_socket_config () in
+  let sockaddr = addr_inet server_addr server_port in
 
   connect server_sock sockaddr >>= fun () ->
   printl "Connection server successfully to !"

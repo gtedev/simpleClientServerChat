@@ -2,14 +2,16 @@ open Lwt.Infix
 open Lwt_io
 
 let buffer_size = 1024
-let server_address = Unix.inet_addr_loopback
+let server_address = "127.0.0.1"
 let server_port = 50000
 
 let get_server_socket_config () =
-  let sockaddr = Lwt_unix.ADDR_INET (server_address, server_port) in
   let socket = Lwt_unix.socket PF_INET SOCK_STREAM 0 in
 
-  (socket, sockaddr)
+  (socket, server_address, server_port)
+
+let addr_inet server_address server_port =
+  Lwt_unix.ADDR_INET (Unix.inet_addr_of_string server_address, server_port)
 
 let print_chat_message client_name body = printl (client_name ^ ": " ^ body)
 
