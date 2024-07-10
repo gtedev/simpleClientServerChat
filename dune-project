@@ -18,7 +18,7 @@
 (package
  (name simpleClientServerChat)
  (synopsis "A simple client-server chat")
- (description "A simple client-server chat in the context of exercise")
+ (description "A simple client-server chat in the context of an interview")
  (depends ocaml dune unix lwt spectrum)
  (tags
   (chat client server lwt socket)))
