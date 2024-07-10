@@ -41,11 +41,11 @@ let rec receive_messages client_sock client_name =
         >>= fun _ -> receive_messages client_sock client_name
     | Some (ACK payload) ->
         let roundtrip_time_message =
-          match payload.timestamp with
-          | Some timestamp ->
-              let roundtripTime = Unix.time () -. timestamp in
-              (roundtripTime |> string_of_float) ^ " seconde(s)"
-          | None -> "Unknown"
+          payload.timestamp
+          |> Option.map (fun t ->
+                 Unix.time () -. t |> string_of_float |> fun x ->
+                 x ^ " seconde(s)")
+          |> Option.value ~default:"Unknown"
         in
         printl (payload.body ^ " - Roundtrip time: " ^ roundtrip_time_message)
         >>= fun () -> receive_messages client_sock client_name
