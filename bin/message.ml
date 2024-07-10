@@ -16,8 +16,7 @@ module Float = struct
     value |> Option.map string_of_float |> Option.value ~default:""
 end
 
-let toString message =
-  match message with
+let toString = function
   | SEND { from; body; timestamp } ->
       [ "SEND"; from; body; Float.to_string_or_default timestamp ]
       |> join_with_pipe
