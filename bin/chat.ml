@@ -15,24 +15,58 @@ module ServerConfig = struct
 end
 
 module Message = struct
-  type message_payload = { from : string; body : string }
+  type message_payload = {
+    from : string;
+    body : string;
+    timestamp_sent : float option;
+  }
+
   type t = SEND of message_payload | ACK of message_payload
 
   let separator = '|'
   let join_with_pipe = String.concat (separator |> String.make 1)
-  let create_send from body = SEND { from; body }
-  let create_ack from body = ACK { from; body }
+  let create_send from timestamp_sent body = SEND { from; body; timestamp_sent }
+  let create_ack from timestamp_sent body = ACK { from; body; timestamp_sent }
+
+  module Float = struct
+    let to_string_or_default (value : float option) =
+      match value with Some v -> string_of_float v | None -> ""
+  end
 
   let toString message =
     match message with
-    | SEND payload -> [ "SEND"; payload.from; payload.body ] |> join_with_pipe
-    | ACK payload -> [ "ACK"; payload.from; payload.body ] |> join_with_pipe
+    | SEND { from; body; timestamp_sent } ->
+        [ "SEND"; from; body; Float.to_string_or_default timestamp_sent ]
+        |> join_with_pipe
+        |> fun x -> 
+            print_endline ("Gerard yaya: " ^ x ^ " - herve"); 
+            x
+    | ACK { from; body; timestamp_sent } ->
+      let kaka = 
+        match timestamp_sent with 
+        | Some v -> "Some: " ^ (string_of_float v)
+        | None -> "None"
+      in
+
+        print_endline ("Gerard ACK" ^ kaka);
+
+        [ "ACK"; from; body; (Float.to_string_or_default timestamp_sent) ]
+        |> join_with_pipe
 
   let toPayload messageString =
+    print_endline ("Gerard messageString: " ^ messageString);
     let params = String.split_on_char separator messageString in
     match params with
-    | [ "SEND"; from; body ] -> Some (SEND { from; body })
-    | [ "ACK"; from; body ] -> Some (ACK { from; body })
+    | [ "SEND"; from; body; timestamp_sent ] ->
+        print_endline ("Gerard kaka: " ^ timestamp_sent);
+        Some
+          (SEND
+             { from; body; timestamp_sent = float_of_string_opt timestamp_sent })
+    | [ "ACK"; from; body; timestamp_sent ] ->
+      print_endline ("Gerard fufufuf: " ^ timestamp_sent);
+        Some
+          (ACK
+             { from; body; timestamp_sent = float_of_string_opt timestamp_sent })
     | _ -> None
 end
 
@@ -52,23 +86,50 @@ let rec receive_messages client_sock client_name =
   else
     let message = Bytes.sub_string buffer 0 bytes_read |> Message.toPayload in
     match message with
-    | Some (SEND { from; body }) ->
+    | Some (SEND { from; body; timestamp_sent }) ->
+
+
+        let vava = 
+          match timestamp_sent with 
+          | Some _ -> "Some"
+          | None -> "None"
+        in
+        print_endline ("Gerard abdou :" ^ vava);
+
         print_chat_message from body >>= fun () ->
-        Message.create_ack client_name
-          ("[ACK] Message successfully reveived and processed by: "
-         ^ client_name)
-        |> Message.toString |> send client_sock
+        "[ACK] Message successfully reveived and processed by: " ^ client_name
+        |> Message.create_ack client_name timestamp_sent
+        |> Message.toString 
+        |> fun x ->
+           print_endline ("Gerard hhhh :" ^ x);
+           x
+        |> send client_sock
         >>= fun _ -> receive_messages client_sock client_name
     | Some (ACK payload) ->
-        printl payload.body >>= fun () ->
-        receive_messages client_sock client_name
+        let roundtrip_time_message =
+          match payload.timestamp_sent with
+          | Some timestamp_sent ->
+              let roundtripTime =
+                (Unix.time() |> int_of_float) - (timestamp_sent |> int_of_float)
+              in
+              (roundtripTime |> string_of_int) ^ " seconde(s)"
+          | None -> "Unknown"
+        in
+        printl (payload.body ^ " - Roundtrip time: " ^ roundtrip_time_message)
+        >>= fun () -> receive_messages client_sock client_name
     | _ -> receive_messages client_sock client_name
 
 let rec send_messages client_sock client_name =
   Lwt_io.read_line_opt stdin >>= function
   | Some message ->
+      (* let myTime = 1000.0 in *)
+      let timestamp_sent = Some (Unix.time ()) in
+
+      (* print_endline "Gerard log"
+      print_float myTime; *)
+
       message
-      |> Message.create_send client_name
+      |> Message.create_send client_name timestamp_sent
       |> Message.toString |> send client_sock
       >>= fun _ ->
       print_chat_message client_name message >>= fun _ ->

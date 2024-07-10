@@ -2,4 +2,4 @@
  (public_name simpleClientServerChat)
  (name main)
  (modules types chat client server main)
- (libraries lwt lwt.unix simpleClientServerChat))
+ (libraries lwt lwt.unix unix simpleClientServerChat))
