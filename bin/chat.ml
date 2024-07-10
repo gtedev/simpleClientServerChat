@@ -1,6 +1,6 @@
 open Lwt.Infix
 open Lwt_io
-
+(* open Spectrum *)
 let buffer_size = 1024
 let server_address = "127.0.0.1"
 let server_port = 50000
@@ -13,10 +13,20 @@ let get_server_socket_config () =
 let addr_inet server_address server_port =
   Lwt_unix.ADDR_INET (Unix.inet_addr_of_string server_address, server_port)
 
-let print_chat_message client_name body =
-  printl ("< " ^ client_name ^ " >: " ^ body)
+let log_title message =
+    Spectrum.prepare_ppf Format.std_formatter (); (* prints to stdout *)
+    Spectrum.Simple.printf "@{<bold,teal>%s@}\n" message;
+    Lwt.return_unit
 
-let log_info message = printl ("==> LOG: " ^ message)
+let print_chat_message client_name body =
+  Spectrum.prepare_ppf Format.std_formatter (); (* prints to stdout *)
+  Spectrum.Simple.printf "@{<bold, fuchsia>%s@} @{<white>%s@}\n" (client_name ^ ": ") body;
+  Lwt.return_unit
+
+let log_info message =
+  Spectrum.prepare_ppf Format.std_formatter (); (* prints to stdout *)
+  Spectrum.Simple.printf "@{<italic,teal>%s@}\n" ("==> LOG: " ^ message);
+  Lwt.return_unit
 
 let send (client : Lwt_unix.file_descr) message =
   let bytes = Bytes.of_string (message ^ "\n") in

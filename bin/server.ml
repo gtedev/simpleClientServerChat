@@ -1,7 +1,6 @@
 open Lwt
 open Lwt.Infix
 open Lwt_unix
-open Lwt_io
 open Chat
 
 (** Wait for incoming clients, accept them then, engage a chat on the accepted client socket
@@ -20,7 +19,7 @@ let wait_incoming_connections server_sock () =
   accept_connections ()
 
 let main () =
-  let _ = printl "=========== Server ===========\n\n\n" in
+  let _ = log_title "=========== Server ===========\n\n" in
   let server_sock, server_addr, server_port = get_server_socket_config () in
   let sockaddr = addr_inet server_addr server_port in
 

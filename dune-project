@@ -19,7 +19,7 @@
  (name simpleClientServerChat)
  (synopsis "A simple client-server chat")
  (description "A simple client-server chat in the context of exercise")
- (depends ocaml dune unix lwt)
+ (depends ocaml dune unix lwt spectrum)
  (tags
   (chat client server lwt socket)))
 
