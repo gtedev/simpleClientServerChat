@@ -47,7 +47,10 @@ let rec receive_messages_from_socket sock client_name =
 
     (message |> Message.to_payload_opt |> function
      | Some (SEND { sender; body; timestamp }) ->
-         (* For simplicity. let's pretend it takes 1 second to process the msg *)
+         (* If we receive a SEND, means a "normal message", we are sending back an ACK message *)
+         (* For simplicity. let's pretend it takes 1 second to process the msg, so we would see
+            the time reflected in the roundtrip time.
+         *)
          Thread.delay 1.0;
 
          print_chat_message sender body >>= fun () ->
@@ -56,6 +59,7 @@ let rec receive_messages_from_socket sock client_name =
          |> Message.to_string |> send sock
          >>= fun _ -> Lwt.return_unit
      | Some (ACK payload) ->
+         (* If we receive an ACK, compute the roundtrip time and log it*)
          let roundtrip__message =
            payload.timestamp
            |> Option.map (fun t ->
