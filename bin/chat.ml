@@ -93,8 +93,8 @@ let start_chat sock ~client_name () =
   let send_job = send_messages_to_socket sock client_name in
   let receive_job = receive_messages_from_socket sock client_name in
 
-  (* With pick, it ensures one task stops if the other stops before*)
-  (* It means if receive receives a closed connection notification, Lwt will try to cancel send job*)
+  (* With Lwt.pick, it ensures one job stops if the other stops earlier*)
+  (* For example, it means if recv gets a closed connection notification, Lwt will try to cancel send job*)
   Lwt.catch
     (fun _ -> Lwt.pick [ send_job; receive_job ])
     (fun exn -> Lwt_io.printf "Exception: %s\n" (Printexc.to_string exn))
