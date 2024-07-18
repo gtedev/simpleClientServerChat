@@ -7,9 +7,9 @@
 (source
  (github username/reponame))
 
-(authors "Author Name")
+(authors "Gerard TE")
 
-(maintainers "Maintainer Name")
+(maintainers "Gerard TE")
 
 (license LICENSE)
 
@@ -17,10 +17,10 @@
 
 (package
  (name simpleClientServerChat)
- (synopsis "A short synopsis")
- (description "A longer description")
- (depends ocaml dune unix)
+ (synopsis "A simple client-server chat")
+ (description "A simple client-server chat in the context of an interview")
+ (depends ocaml dune unix lwt spectrum)
  (tags
-  (topics "to describe" your project)))
+  (chat client server lwt socket)))
 
 ; See the complete stanza docs at https://dune.readthedocs.io/en/stable/dune-files.html#dune-project

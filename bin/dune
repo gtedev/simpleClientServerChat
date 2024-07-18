@@ -1,5 +1,5 @@
 (executable
  (public_name simpleClientServerChat)
  (name main)
- (modules types util client server main)
- (libraries threads unix simpleClientServerChat))
+ (modules message chat client server main)
+ (libraries lwt lwt.unix unix base spectrum simpleClientServerChat))
